@@ -65,12 +65,17 @@ public class Frustrum : MonoBehaviour
         Vector3 farPlanePos = cam.transform.position + cam.transform.forward * cam.farClipPlane;
         // Setea los planos en base a 3 esquinas de la camara
         planes[0].SetNormalAndPosition(cam.transform.forward, nearPlanePos);            //Superior
-        planes[1].SetNormalAndPosition(cam.transform.forward, farPlanePos);             //Inferior
-        planes[2].Set3Points(cam.transform.position, farBottomLeft,farTopLeft);         //Izquierda
-        planes[3].Set3Points(cam.transform.position, farTopRight, farBottomRight);      //Derecha
-        planes[4].Set3Points(cam.transform.position, farTopLeft, farTopRight);          //Frontal
-        planes[5].Set3Points(cam.transform.position, farBottomRight, farBottomLeft);    //Posterior
+        planes[1].SetNormalAndPosition(cam.transform.forward * -1, farPlanePos);             //Inferior
 
+        planes[2].Set3Points(cam.transform.position, farBottomLeft, farTopLeft);//left
+        planes[3].Set3Points(cam.transform.position, farTopRight, farBottomRight);//right
+        planes[4].Set3Points(cam.transform.position, farTopLeft, farTopRight);//top
+        planes[5].Set3Points(cam.transform.position, farBottomRight, farBottomLeft);//bottom
+
+        for (int i = 2; i < maxPlanes; i++)
+        {
+            planes[i].Flip();
+        }
         for (int i = 0; i < maxObj; i++)
         {
             Checkcolition(Objs[i]);
@@ -83,6 +88,16 @@ public class Frustrum : MonoBehaviour
 
     public void AABB(ref Obj currentObject)
     {
+        if (currentObject.scale != currentObject.gameObject.transform.localScale)
+        {
+            Quaternion rotation = currentObject.gameObject.transform.rotation;
+            currentObject.gameObject.transform.rotation = Quaternion.identity;
+            currentObject.v3Extents = currentObject.meshRenderer.bounds.extents;
+            currentObject.scale = currentObject.gameObject.transform.localScale;
+            currentObject.gameObject.transform.rotation = rotation;
+        }
+
+
         Vector3 center = currentObject.meshRenderer.bounds.center;
         Vector3 size = currentObject.v3Extents;
 
@@ -147,6 +162,11 @@ public class Frustrum : MonoBehaviour
     }
     public void OnDrawGizmos()
     {
+        if (!Application.isPlaying)
+        {
+            return;
+        }
+
         Gizmos.color = Color.red;
 
         //Plano Cercano
@@ -176,12 +196,6 @@ public class Frustrum : MonoBehaviour
         Gizmos.color = Color.blue;
 
 
-        for (int i = 0; i < maxVertices; i++)
-        {
-            Gizmos.DrawSphere(currentObject.aabb[i], 0.05f);
-        }
-
-
         // Draw the AABB Box 
         Gizmos.DrawLine(currentObject.aabb[0], currentObject.aabb[1]);
         Gizmos.DrawLine(currentObject.aabb[1], currentObject.aabb[3]);
@@ -201,8 +215,6 @@ public class Frustrum : MonoBehaviour
     }
     public void Checkcolition(Obj currentObject)
     {
-        bool isInside = false;
-
         for (int i = 0; i < maxVertices; i++)
         {
             int counter = maxPlanes;
@@ -217,21 +229,17 @@ public class Frustrum : MonoBehaviour
 
             if (counter == 0)
             {
-                isInside = true;
+                //Debug.Log("Está adentro");
+                currentObject.gameObject.SetActive(true);
                 break;
+            }
+            else
+            {
+                //Debug.Log("Está fuera");
+                currentObject.gameObject.SetActive(false);
             }
         }
 
-        if(isInside) 
-        {
-
-            Debug.Log("Está adentro");
-
-        }
-        else
-        {
-            Debug.Log("Está afuera");
-        }
     }
     public void DrawPlane(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4)
     {
