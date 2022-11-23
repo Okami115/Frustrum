@@ -66,4 +66,30 @@ public class Frustrum : MonoBehaviour
         farBottomLeft = farPlaneDistance - (cam.transform.up * halfCameraHeightfar) - (cam.transform.right * CameraHalfWidthFar);
         farBottomRight = farPlaneDistance - (cam.transform.up * halfCameraHeightfar) + (cam.transform.right * CameraHalfWidthFar);
     }
+
+    public void OnDrawGizmos()
+    {
+        Gizmos.color = Color.blue;
+
+        //Plano Cercano
+        DrawPlane(nearTopRight, nearBottomRight, nearBottomLeft, nearTopLeft);
+        //Plano Lejano
+        DrawPlane(farTopRight, farBottomRight, farBottomLeft, farTopLeft);
+        // Plano Derecho
+        DrawPlane(nearTopRight, farTopRight, farBottomRight, nearBottomRight);
+        // Plano Izquierdo
+        DrawPlane(nearTopLeft, farTopLeft, farBottomLeft, nearBottomLeft);
+        // Plano Superior
+        DrawPlane(nearTopLeft, farTopLeft, farTopRight, nearTopRight);
+        //Plano Inferior
+        DrawPlane(nearBottomLeft, farBottomLeft, farBottomRight, nearBottomRight);
+    }
+
+    public void DrawPlane(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4)
+    {
+        Gizmos.DrawLine(p1, p2);
+        Gizmos.DrawLine(p2, p3);
+        Gizmos.DrawLine(p3, p4);
+        Gizmos.DrawLine(p4, p1);
+    }
 }
